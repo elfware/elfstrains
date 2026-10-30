@@ -98,6 +98,19 @@ table.sample td {
 	-moz-border-radius: ;
 }
 
+table.sample[data-searchcomment="0"] td:nth-child(5) {
+	max-width: 50px;
+	text-overflow: ellipsis;
+	word-wrap: break-word;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+table.sample[data-searchcomment="0"] td:nth-child(5):hover {
+	overflow: visible;
+	white-space: initial;
+}
+
 table.insert {
 	border: 0px solid black;
 	border-collapse: collapse;
@@ -351,6 +364,7 @@ form .helptext {
 
 .form-group {
 	padding: 4px 0;
+	width: 100%;
 }
 
 .display-none {

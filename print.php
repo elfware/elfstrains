@@ -1,30 +1,3 @@
-/*****************************************************************************
- *
- * MIT License
- *
- * Copyright (c) 2024 Joakim Nasvall
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- *******************************************************************************/
-
-
 <?php
 
 $go_ahead = FALSE;
@@ -47,7 +20,28 @@ if ($_GET['mode'] == 'myList') {
 		$listInQuery = implode(", ", $listInQuery);
 		$numberOfListParameters = count($list);
 
-		$sql = "SELECT * FROM strains WHERE Strain IN (" . $listInQuery . ")";
+		$sql = "SELECT s.*,	u.signature, t.status 
+				FROM strain_information as s
+				INNER JOIN ( 
+						SELECT tube_id, max(date) as maxdate
+						FROM strain_information
+						GROUP BY tube_id) as s2
+					ON s.tube_id=s2.tube_id AND s.date=s2.maxdate
+				INNER JOIN users as u
+					ON s.user_id=u.id 
+				INNER JOIN (
+						SELECT ts.tube_id, tsc.status 
+						FROM tube_status as ts
+						INNER JOIN (
+								SELECT tube_id, max(date) as maxdate
+								FROM tube_status 
+								GROUP BY tube_id) as ts2
+							ON ts.tube_id=ts2.tube_id AND ts.date=ts2.maxdate
+						INNER JOIN tube_status_categories as tsc
+							ON ts.category_id=tsc.status) as t 
+					ON s.tube_id=t.tube_id 
+				WHERE s.tube_id IN (" . $listInQuery . ")
+				ORDER BY s.tube_id";
 	}
 }
 //End List selected strains
@@ -99,18 +93,18 @@ if($sql){
 						echo "<th>Recipient</th>";
 						echo "<th>Donor</th>";
 						echo "<th>Comment</th>";
-						#echo "<th style='width:300px'>Comment</th>";
+						echo "<th>Labnote</th>";
 						echo "<th>Signature</th>";
 					echo "</tr>";
 				echo "</thead>";
 
 				foreach($result as $row){
-					$genotype = htmlspecialchars($row['Genotype']);
-					$comment = htmlspecialchars($row['Comment']);
+					$genotype = htmlspecialchars($row['genotype']);
+					$comment = htmlspecialchars($row['comment']);
 
 					echo "<tr>";
 						echo "<td>";
-							echo 'DA' . $row['Strain'];
+							echo 'EL' . $row['tube_id'];
 						echo "</td>";
 
 						echo "<td>";
@@ -118,18 +112,18 @@ if($sql){
 						echo "</td>";
 
 						echo "<td align='right'>";
-							if ($row['Recipient'] == "0") {
+							if ($row['recipient'] == "0") {
 								echo "";
 							} else {
-								echo "DA" . $row['Recipient'] . "</a>";
+								echo "EL" . $row['recipient'] . "</a>";
 							}
 						echo "</td>";
 
 						echo "<td align='right'>";
-							if ($row['Donor'] == "0") {
+							if ($row['donor'] == "0") {
 								echo "";
 							} else {
-								echo "DA" . $row['Donor'] . "</a>";
+								echo "EL" . $row['donor'] . "</a>";
 							}
 						echo "</td>";
 
@@ -138,7 +132,11 @@ if($sql){
 						echo "</td>";
 
 						echo "<td>";
-							echo $row['Signature'];
+							echo $row['labnotes_id'];
+						echo "</td>";
+
+						echo "<td>";
+							echo $row['signature'];
 						echo "</td>";
 					echo "</tr>";
 				} // END foreach($result as $row)

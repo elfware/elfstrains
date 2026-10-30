@@ -1,30 +1,3 @@
-/*****************************************************************************
- *
- * MIT License
- *
- * Copyright (c) 2024 Joakim Nasvall
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- *******************************************************************************/
-
-
 <?php
 
 
@@ -36,13 +9,13 @@ function user_exists($user = NULL, $field = "id"){
 
 	// Prepare PDO statement
 	if($field == "id"){
-		$stmt = $dbh->prepare("SELECT * FROM users WHERE Id = :user");
+		$stmt = $dbh->prepare("SELECT * FROM users WHERE id = :user");
 	}
 	elseif ($field == "username") {
-		$stmt = $dbh->prepare("SELECT * FROM users WHERE Username = :user");
+		$stmt = $dbh->prepare("SELECT * FROM users WHERE username = :user");
 	}
 	elseif ($field == "signature") {
-		$stmt = $dbh->prepare("SELECT * FROM users WHERE Signature = :user");
+		$stmt = $dbh->prepare("SELECT * FROM users WHERE signature = :user");
 	}
 
 	// Bind parameter
@@ -68,10 +41,10 @@ function strain_exists($strain = NULL){
 
 	if($strain !== NULL && is_numeric($strain)){
 		// Prepare PDO statement
-		$stmt = $dbh->prepare("SELECT * FROM strains WHERE Strain = :strain");
+		$stmt = $dbh->prepare("SELECT * FROM stock_tube WHERE id = :strain_id");
 
 		// Bind parameter
-		$stmt->bindParam(":strain", $strain);
+		$stmt->bindParam(":strain_id", $strain);
 
 		// Execute statement
 		$stmt->execute();
@@ -88,4 +61,17 @@ function strain_exists($strain = NULL){
 	} else {
 		return FALSE;
 	}
+}
+
+// CONVERT GREEK CHARACTERS
+function convert_greek_characters($text){
+	$pattern = array('/del/','/lambda/');
+	$replacement = array('Δ','λ');
+	$outtext = preg_replace($pattern,$replacement,$text,1,$count);
+	if ($count == 0) {
+		$pattern = array('/Δ/','/λ/');
+		$replacement = array('del','lambda');
+		$outtext = preg_replace($pattern,$replacement,$outtext,1);
+	}
+	return $outtext;
 }

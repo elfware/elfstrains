@@ -1,48 +1,34 @@
-/*****************************************************************************
- *
- * MIT License
- *
- * Copyright (c) 2024 Joakim Nasvall
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- *******************************************************************************/
-
-
 <?php
 header('Content-Type: text/html; charset=utf-8');
 
 ### Set the default timezone / Jocke
 date_default_timezone_set('Europe/Berlin');
 
-
+// Set cookie lifetime for 8 hours
+$lifetime = 8*60*60;
+session_set_cookie_params($lifetime);
 
 // Start the session
 session_start();
-
+$mode   = $_GET['mode']   ?? '';
+$type   = $_GET['type']   ?? '';
+$logout = $_GET['logout'] ?? '';
+if(isset($_SESSION['timeout'])) {
+	$duration = time() - (int)$_SESSION['timeout'];
+	if ($duration > $lifetime) {
+		$user = '';
+		session_destroy();
+		header('Location: index.php');
+	}
+}
 // Logout
-if($_GET['logout'] == '1') {
+//$now = time();
+//if ( (isset($_SESSION['expire']) && ($now > $_SESSION['expire'])) || ($_GET['logout'] == '1')) {
+if($logout == '1') {
 	$user = '';
 	session_destroy();
 	header('Location: index.php');
 }
-
 // Connect to the database or die
 include("db.php");
 
@@ -51,6 +37,8 @@ include("functions.php");
 
 // Include all actions for forms
 include("actions.php");
+
+include("download.php");
 
 // Troubleshooting
 //print("session:<pre class='noPrint'>".print_r($_SESSION, true)."</pre>");
@@ -66,7 +54,7 @@ include("actions.php");
 		<script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
 		<script type="text/javascript" src="js/script.js" ></script>
 
-		<title>Dr Strainlove</title>
+		<title>Orthanc's basement</title>
 	</head>
 	<body>
 		<div id="container" >
@@ -87,30 +75,31 @@ include("actions.php");
 			</div>
 
 			<div id="logo" class='noPrint'>
-				<h1><a href="index.php">Dr Strainlove</a></h1>
-				<p>Powered by <i>Salmonella</i> genetics!</p>
+				<h1><a href="index.php">Orthanc's basement</a></h1>
+				<p><br></p>
 			</div>
 
 			<div class='noPrint'>
 				<h2 class="hide">Site menu:</h2>
 				<ul id="navitab">
-					<li><a class="<?php echo ($_GET['mode'] == 'search' && $_GET['type'] == 'word' ? 'current' : NULL); ?>" href="index.php?mode=search&amp;type=word">Search strains</a></li>
-					<li><a class="<?php echo ($_GET['mode'] == 'search' && $_GET['type'] == 'number' ? 'current' : NULL); ?>" href="index.php?mode=search&amp;type=number">List strains</a></li>
+					<li><a class="<?php echo ($mode == 'search' && $type == 'word' ? 'current' : NULL); ?>" href="index.php?mode=search&amp;type=word">Search strains</a></li>
+					<li><a class="<?php echo ($mode == 'search' && $type == 'number' ? 'current' : NULL); ?>" href="index.php?mode=search&amp;type=number">List strains</a></li>
 
 
-					<?php if($_SESSION['Usertype'] == 'Superuser'){ ?>
-						<li><a class="<?php echo ($_GET['mode'] == 'add' ? 'current' : NULL); ?>" href="index.php?mode=add&amp;Line=<?php echo $_SESSION['Line'];?>">Add strain(s)</a></li>
-						<li><a class="<?php echo ($_GET['mode'] == 'addUser' ? 'current' : NULL); ?>" href="index.php?mode=addUser">Add User(s)</a></li>
+					<?php if(in_array(($_SESSION['Usertype'] ?? ''), array('Superuser','Admin'))){ ?>
+						<li><a class="<?php echo ($mode == 'add' ? 'current' : NULL); ?>" href="index.php?mode=add&amp;Line=<?php echo ($_SESSION['Line'] ?? 1);?>">Add strain(s)</a></li>
 					<?php } ?>
-					<li><a class="<?php echo ($_GET['mode'] == 'guidelines' ? 'current' : NULL); ?>" href="index.php?mode=guidelines">Guidelines</a></li>
-					<li><a class="<?php echo ($_GET['mode'] == 'popStrains' ? 'current' : NULL); ?>" href="index.php?mode=popStrains">Popular Strains</a></li>
-					<li><a class="<?php echo ($_GET['mode'] == 'misc' ? 'current' : NULL); ?>" href="index.php?mode=misc">Misc. lab related stuff</a></li>
+					<?php if(($_SESSION['Usertype'] ?? '') == 'Admin'){ ?>
+						<li><a class="<?php echo ($mode == 'addUser' ? 'current' : NULL); ?>" href="index.php?mode=addUser">Add User(s)</a></li>
+					<?php } ?>
+					<li><a class="<?php echo ($mode == 'guidelines' ? 'current' : NULL); ?>" href="index.php?mode=guidelines">Guidelines</a></li>
+					<li><a class="<?php echo ($mode == 'popStrains' ? 'current' : NULL); ?>" href="index.php?mode=popStrains">Popular Strains</a></li>
 				</ul>
 			</div>
 			<div id="desc" class='noPrint'>
 				<div class="splitleft">
-					<h2>Welcome to the DA strain database!</h2>
-					<p>This is where the good strains are. And some <i>E. coli</i> too...</br></p>
+					<h2>Welcome to the Elflab strain database!</h2>
+					<p>This is where only the good <i>E. coli</i> strains are...</br></p>
 				</div>
 				<hr>
 			</div>
@@ -119,32 +108,35 @@ include("actions.php");
 				<p id="js-disabled" class="validation-fail">No JS detected! Some functionality disabled!</p>
 <?php $today = date ('Y-m-d H:i:s'); ?>
 				<?php
-				$value = $_GET['mode'];
+				$value = $mode;
 
-				if ($_SESSION['login'] != '1') {
+				if (($_SESSION['login'] ?? '') != '1') {
 					include("login.php");
 				} else {
-					if (($value == 'search') && $_GET['error'] == 'error') {
+					if (($value == 'search') && ($_GET['error'] ?? '')  == 'error') {
 						echo "<span style='color: red'><strong>You need to provide at least one keyword!</strong></span><br>";
 						include("search.php");
 					}
-					elseif (($value == 'search') && ($_POST['isPosted'] == 'TRUE' || $_GET['search'] == "1")) {
+					elseif (($value == 'search') && (($_POST['isPosted'] ?? '') == 'TRUE' || ($_GET['search'] ?? '') == "1")) {
 						include("search.php");
 						include("search1.php");
 					}
-					elseif (($value == 'search') && ($_POST['isPosted'] != 'TRUE')) {
+					elseif (($value == 'search') && (($_POST['isPosted']  ?? '') != 'TRUE')) {
 						include("search.php");
 					}
 					elseif ($value == 'myNum') {
 						include("search1.php");
 					}
-					elseif (($value == 'myList') && ($_POST['show'])) {
+					elseif (($value == 'myList') && (!empty($_POST['show']))) {
 						include("search1.php");
 					}
-					elseif (($value == 'myList') && ($_POST['edit'])) {
+					elseif (($value == 'myList') && (!empty($_POST['edit']))) {
 						include("edit.php");
 					}
-					elseif (($value == 'myList') && ($_POST['print'])) {
+					elseif (($value == 'myList') && (!empty($_POST['edit_status']))) {
+						include("edit_status.php");
+					}
+					elseif (($value == 'myList') && (!empty($_POST['print']))) {
 						include("print.php");
 					}
 					elseif ($value == 'add') {
@@ -156,17 +148,29 @@ include("actions.php");
 					elseif ($value == 'edit2') {
 						include("search1.php");
 					}
-					elseif (($value == 'addUser') && ($_GET['save'] != 'success')) {
+					elseif ($value == 'edit3') {
+						include("search1.php");
+					}
+					elseif (($value == 'addUser') && (($_GET['save'] ?? '') != 'success')) {
 						include("signup.php");
 					}
 					elseif ($value == 'guidelines') {
 						include("guidelines.htm");
 					}
 					elseif ($value == 'popStrains') {
-						include("popstrains.html");
+						//include("popstrains.html");
 					}
 					elseif ($value == 'misc') {
 						include("misc.html");
+					}
+					elseif ($value == 'info') {
+						include("info.php");
+					}
+					elseif ($value == 'log') {
+						include("log.php");
+					}
+					elseif ($value == 'upload') {
+						include("info.php");
 					}
 					else {
 						include("search.php");
@@ -176,13 +180,13 @@ include("actions.php");
 
 				<div class='noPrint'>
 					<br><br>
-					<p class="block"><strong>Please note:</strong> <?php echo $helpmessage . " " . $helpmessage2; ?></p>
+					<p class="block" <?php echo ((!isset($helpmessage) || ($helpmessage==''))?'hidden':'');?>><strong>Please note:</strong> <?php echo ($helpmessage ?? ''). " " . ($helpmessage2 ?? ''); ?></p>
 				</div>
 			</div> <!-- id="main" -->
 
 			<div class='noPrint'>
 				<div id="footer">
-					<p>2011 &middot; Joakim Näsvall &middot; This page was last updated 2015-08-25 by Per Enström (major code cleanup, migration to php 5 and run as a MAMP server).</p>
+					<p>2011 &middot; Joakim Näsvall &middot; This page was last updated 2026-10-27 by Spartak Zikrin.</p>
 				</div>
 			</div>
 		</div> <!-- id="container" -->
