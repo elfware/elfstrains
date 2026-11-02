@@ -1,7 +1,8 @@
 <?php
 // Import strains from a .csv file into the database.
 // Run from the command line in the elfstrains directory:
-//   php scripts/import_strains.php strains.csv username
+//   php scripts/import_strains.php strains.csv username [--dry-run]
+// With --dry-run the strains are shown but nothing is saved.
 //
 // The .csv file is separated by ';' and has a header line with the columns
 //   number;Genotype;Donor;Recipient;Comment;.gb available;labnotes
@@ -12,11 +13,13 @@
 if (PHP_SAPI !== 'cli') {
 	die('Run this script from the command line');
 }
-if ($argc != 3) {
-	die("Usage: php scripts/import_strains.php file.csv username\n");
+$dryRun = in_array('--dry-run', $argv);
+$args = array_values(array_diff(array_slice($argv, 1), array('--dry-run')));
+if (count($args) != 2) {
+	die("Usage: php scripts/import_strains.php file.csv username [--dry-run]\n");
 }
-$filename = $argv[1];
-$username = $argv[2];
+$filename = $args[0];
+$username = $args[1];
 
 // Open database connection
 include(__DIR__ . '/../db.php');
@@ -108,6 +111,18 @@ try {
 		if ($stmtInfo->rowCount() != 1 || $stmtStatus->rowCount() != 1) {
 			throw new Exception('Failed to save strain ' . $s['number']);
 		}
+		if ($dryRun) {
+			echo $s['number'] . ' -> ' . $newNumber[$s['number']] . ': ' . $s['genotype']
+				. ' (donor ' . ($parents['donor'] ?? '-') . ', recipient ' . ($parents['recipient'] ?? '-')
+				. ', labnotes ' . ($s['labnote'] === '' ? '-' : $s['labnote']) . ")\n";
+		}
+	}
+
+	if ($dryRun) {
+		$dbh->rollBack();
+		$dbh->exec('ALTER TABLE stock_tube AUTO_INCREMENT=1');
+		echo 'Dry run OK, ' . count($strains) . " strains would be inserted. Nothing was saved.\n";
+		exit(0);
 	}
 
 	$dbh->commit();

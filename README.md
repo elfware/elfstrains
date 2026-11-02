@@ -33,7 +33,6 @@ None. You are free to modify the included files in any way you want to suit your
 ?
 
 ## Files:
-In  strainlove/
 - actions.php
 - db-example.php
 - db.php
@@ -60,6 +59,7 @@ In  strainlove/
 - search1.php
 - signup.php - contains functions to add new users
 - scripts/import_strains.php - command line script for loading strains from a .csv file
+- scripts/example_strains.csv - example .csv file for import_strains.php
 - uploads - folder with the uploaded GenBank files
 - variant.css
 
@@ -97,6 +97,7 @@ Use the script scripts/import_strains.php from the elfstrains directory on the s
 ```
 php scripts/import_strains.php strains.csv username
 ```
+See scripts/example_strains.csv for an example file. Add `--dry-run` to check the file first: the strains are shown with their new numbers, but nothing is saved.
 
 ### Delete a strain 
 Strains are not deleted. Set the tube status to `discarded` or `lost` in the web interface instead.

@@ -1,0 +1,5 @@
+number;Genotype;Donor;Recipient;Comment;.gb available;labnotes
+1;BW27783 (is araE-, araFGH-, lac-);;;induction with lower arabinose;;
+2;BW27783 lac+ T1;;1;selection of BW27783 on lactose (P1 on BW to revert to lac+);;
+3;BW Δ(PlacI-lacI)::CmR T1;;;;;
+4;BW27783 Δ(PlacI-lacI)::CmR T1;3;2;"P1 from 3 to 2; selected on Cm";yes;EXP-24-000123
