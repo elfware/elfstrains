@@ -60,7 +60,7 @@ None. You are free to modify the included files in any way you want to suit your
 - signup.php - contains functions to add new users
 - scripts/import_strains.php - command line script for loading strains from a .csv file
 - scripts/example_strains.csv - example .csv file for import_strains.php
-- uploads - folder with the uploaded GenBank files
+- uploads - link to the folder with the uploaded GenBank files (not in git, see Installation)
 - variant.css
 
 
@@ -72,7 +72,13 @@ None. You are free to modify the included files in any way you want to suit your
 - If you want to change anything in how the web interface display the data (names of fields, prefix to the strain numbers etc.) you need to edit some of the included .php files.
 
 ## Installation:
-Copy the strain server files to the server’s /var/www directory (if there already are some files there, make a new sub-directory, e.g. /var/www/strains. In this case you may need to edit some paths in some of the actual .php files). Copy db-example.php to db.php and enter the database user and password. Make the uploads directory writable by the web server. Check that it’s working by browsing to the server’s (IP-) address from a web browser on another computer. If you made a subdirectory, add “/strains” after the server’s address (this may also require you to make some adjustments in some of the .php files). You should see the strain database’s web interface.
+Copy the strain server files to the server’s /var/www/html directory (if there already are some files there, make a new sub-directory, e.g. /var/www/html/elfstrains as on our server. In this case you may need to edit some paths in some of the actual .php files). Copy db-example.php to db.php and enter the database user and password. The uploaded GenBank files are stored outside the web directory, in /home/elfstrainsuploads. Create that folder, make it writable by the web server and link it as uploads:
+```
+sudo mkdir /home/elfstrainsuploads
+sudo chown www-data /home/elfstrainsuploads
+ln -s /home/elfstrainsuploads /var/www/html/elfstrains/uploads
+```
+Check that it’s working by browsing to the server’s (IP-) address from a web browser on another computer. If you made a subdirectory, add “/elfstrains” after the server’s address (this may also require you to make some adjustments in some of the .php files). You should see the strain database’s web interface.
 
 Make the new MySQL database, the tables, the tube status categories and the first user (update the user information before running)
 ```
@@ -110,4 +116,4 @@ connect elfstrains
 update users set password = md5('newpasswd') where id=22;
 ```
 ## Make backups. 
-I use mysqldump to drop a copy of the database…
+I use mysqldump to drop a copy of the database… Also back up the uploaded GenBank files in /home/elfstrainsuploads.

@@ -1,4 +1,3 @@
 .DS_Store
-uploads/*
-!uploads/.gitkeep
+/uploads
 db.php
